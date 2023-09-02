@@ -38,3 +38,5 @@ class Review(Base):
     customer = relationship('Customer', back_populates='reviews')
 
 Base.metadata.create_all(bind=engine)
+Session = sessionmaker(bind = engine)
+session = Session()
