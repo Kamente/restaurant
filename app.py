@@ -1,46 +1,69 @@
-# "https://dbdiagram.io/d/64f3140102bd1c4a5ed84328"  # database tables
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship
 
-# from sqlalchemy import create_engine
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy import Column, Integer, String, Sequence, ForeignKey
-# from sqlalchemy.orm import sessionmaker, relationship
+DATABASE_URI = 'sqlite:///database.db'
 
-# DATABASE_URI = 'sqlite:///database.db'
+engine = create_engine(DATABASE_URI, echo=True)
 
-# engine = create_engine(DATABASE_URI, echo=True)
-
-# Base = declarative_base()
+Base = declarative_base()
 
 
-# class Restaurant(Base):
-#     __tablename__ = 'restaurant'
-#     rest_id = Column(Integer, Sequence('rest_id_seq'), primary_key=True)
-#     rest_name = Column(String)
-#     rest_price = Column(Integer)
+class Restaurant(Base):
+    __tablename__ = 'restaurants'  
+    id = Column(Integer, primary_key=True)
+    name = Column(String)  
+    price = Column(Integer)  
 
-#     reviews = relationship('Review', back_populates='restaurant')
+  
+    reviews = relationship('Review', back_populates='restaurant')
+    customers = relationship(
+        'Customer', secondary='reviews', back_populates='restaurants')
 
+    def reviews(self):
+        return session.query(Review).filter_by(restaurant=self).all()
 
-# class Customer(Base):
-#     __tablename__ = 'customer'
-#     cust_id = Column(Integer, Sequence('cust_id_seq'), primary_key=True)
-#     cust_fname = Column(String)
-#     cust_lname = Column(String)
-
-#     reviews = relationship('Review', back_populates='customer')
-
-
-# class Review(Base):
-#     __tablename__ = 'reviews'
-#     review_id = Column(Integer, Sequence('review_id_seq'), primary_key=True)
-#     star_rating = Column(Integer)
-#     rest_id = Column(Integer, ForeignKey('restaurant.rest_id'))
-#     cust_id = Column(Integer, ForeignKey('customer.cust_id'))
-
-#     restaurant = relationship('Restaurant', back_populates='reviews')
-#     customer = relationship('Customer', back_populates='reviews')
+    def customers(self):
+        return session.query(Customer).join(Review).filter(Review.restaurant == self).all()
 
 
-# Base.metadata.create_all(bind=engine)
-# Session = sessionmaker(bind=engine)
-# session = Session()
+class Customer(Base):
+    __tablename__ = 'customers'  
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String)  
+    last_name = Column(String)  
+
+    reviews = relationship('Review', back_populates='customer')
+    restaurants = relationship(
+        'Restaurant', secondary='reviews', back_populates='customers')
+
+    def reviews(self):
+        return session.query(Review).filter_by(customer=self).all()
+
+    def restaurants(self):
+        return session.query(Restaurant).join(Review).filter(Review.customer == self).all()
+
+
+class Review(Base):
+    __tablename__ = 'reviews'  
+    id = Column(Integer, primary_key=True)
+    star_rating = Column(Integer)
+ 
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'))
+ 
+    customer_id = Column(Integer, ForeignKey('customers.id'))
+
+    restaurant = relationship('Restaurant', back_populates='reviews')
+    customer = relationship('Customer', back_populates='reviews')
+
+    def restaurant(self):
+        return self.restaurant
+
+    def customer(self):
+        return self.customer
+
+
+Base.metadata.create_all(bind=engine)
+Session = sessionmaker(bind=engine)
+session = Session()
