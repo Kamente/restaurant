@@ -7,7 +7,7 @@ DATABASE_URI = 'sqlite:///database.db' # creating connection to database
 
 engine = create_engine(DATABASE_URI, echo=True)
 
-Base = declarative_base()
+Base = declarative_base() # declaring a base class
 
 # creating the database tables
 # table Restaurant and it's atributes
