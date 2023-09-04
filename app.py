@@ -3,13 +3,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship
 
-DATABASE_URI = 'sqlite:///database.db'
+DATABASE_URI = 'sqlite:///database.db' # creating connection to database
 
 engine = create_engine(DATABASE_URI, echo=True)
 
 Base = declarative_base()
 
-
+# creating the database tables
+# table Restaurant and it's atributes
 class Restaurant(Base):
     __tablename__ = 'restaurants'  
     id = Column(Integer, primary_key=True)
@@ -27,7 +28,7 @@ class Restaurant(Base):
     def customers(self):
         return session.query(Customer).join(Review).filter(Review.restaurant == self).all()
 
-
+# table Customer and it's atributes
 class Customer(Base):
     __tablename__ = 'customers'  
     id = Column(Integer, primary_key=True)
@@ -44,7 +45,7 @@ class Customer(Base):
     def restaurants(self):
         return session.query(Restaurant).join(Review).filter(Review.customer == self).all()
 
-
+# table Review and it's atributes
 class Review(Base):
     __tablename__ = 'reviews'  
     id = Column(Integer, primary_key=True)
